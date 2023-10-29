@@ -18,3 +18,4 @@ my_*
 *.pyc
 .DS_Store
 checkpoint
+haarcascade_frontalface_default.xml
