@@ -42,7 +42,7 @@ for extension in extensions:
 
         destSubDir = os.path.join(facesDir, subDir)
 
-        # Create sub directory in destination directory "facces/" if not already exists
+        # Create sub directory in destination directory "faces/" if not already exists
         if not os.path.exists(destSubDir):
             os.makedirs(destSubDir)
 
