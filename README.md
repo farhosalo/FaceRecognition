@@ -2,7 +2,8 @@
 
 ## Description
 
-This is a test project for face recognition with tensorflow.
+This is a test project for face recognition with Tensorflow using transfer learning.
+This project can be applied to an order with personal photos to recognize family members.
 The project consists of two parts:
 
 - Face detection and extraction

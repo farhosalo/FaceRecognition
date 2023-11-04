@@ -1,6 +1,7 @@
 import matplotlib
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import os
 
 matplotlib.use("TkAgg")
 
@@ -11,6 +12,7 @@ IMAGE_SHAPE = IMAGE_SIZE + (3,)
 BATCH_SIZE = 10
 FACES_DIR = "./faces"
 EPOCHS = 15
+MODEL_NAME = "face_recognition.h5"
 
 
 ## Preparing datasets
@@ -137,6 +139,27 @@ stop = time.time()
 # Calculate training duration print it out
 print(f"Training took: {(stop-start)/60} minutes")
 
-# TODO: Unfreeze base model's layer and retrain the model with lower learning rates
-# TODO: Save the trained model to use it for predicting
-# TODO: Convert the model for using it on mobile devices
+# After we achieve good weights, we can make the base model layers trainable again
+# and continue training with lower learning rates
+
+for layer in baseModel.layers:
+    layer.trainable = True
+learningRate = 0.01
+momentum = 0.9
+optimizer = tf.keras.optimizers.legacy.SGD(
+    learning_rate=learningRate, momentum=momentum
+)
+loss = tf.keras.losses.SparseCategoricalCrossentropy()
+
+model.compile(loss=loss, optimizer=optimizer, metrics=["accuracy"])
+
+start = time.time()
+history = model.fit(trainDataset, validation_data=validDataset, epochs=EPOCHS)
+stop = time.time()
+print(f"Training took: {(stop-start)/60} minutes")
+
+
+# Save the model
+workingDir = os.path.dirname(__file__)
+modelPath = os.path.join(workingDir, MODEL_NAME)
+model.save(MODEL_NAME)
