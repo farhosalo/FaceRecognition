@@ -8,6 +8,7 @@ The project consists of two parts:
 
 - Face detection and extraction
 - Face recognition
+- Face prediction
 
 ## Face detection and extraction
 
@@ -29,3 +30,7 @@ After extracting the faces you have to organize them all in a directory structur
     |  |-- ...
     |..................
 ```
+
+## Face prediction
+
+After training and saving the model, we reload the model und use it to predict faces. Just run the Predict.py script and pass it the image path as an argument.
