@@ -2,6 +2,7 @@ import matplotlib
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 matplotlib.use("TkAgg")
 
@@ -13,6 +14,7 @@ BATCH_SIZE = 10
 FACES_DIR = "./faces"
 EPOCHS = 15
 MODEL_NAME = "face_recognition.h5"
+CLASS_NAMES_FILE = "ClassNames.txt"
 
 
 ## Preparing datasets
@@ -24,6 +26,9 @@ learnData = tf.keras.utils.image_dataset_from_directory(
 # Get class names from dataset
 classNames = learnData.class_names
 print(classNames)
+
+# Save class names to file to use it when predicting faces
+np.savetxt(CLASS_NAMES_FILE, classNames, fmt="%s")
 
 # Get number of classes
 nClasses = len(classNames)
