@@ -2,12 +2,13 @@ import os
 import cv2
 from glob import glob
 import urllib.request
+import CommonDefinitions as common
 
 # Get working directory
 workingDir = os.path.dirname(__file__)
 
 # Directory where extracted faces are stored
-facesDir = os.path.join(workingDir, "faces")
+facesDir = os.path.join(workingDir, common.FACES_DIR)
 
 # Create face directory if it doesn't exist
 if not os.path.exists(facesDir):

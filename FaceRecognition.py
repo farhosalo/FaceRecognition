@@ -3,24 +3,18 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import os
 import numpy as np
+import CommonDefinitions as common
 
 matplotlib.use("TkAgg")
-
-SEED = 42
-HEIGHT = WIDTH = 224
-IMAGE_SIZE = (HEIGHT, WIDTH)
-IMAGE_SHAPE = IMAGE_SIZE + (3,)
-BATCH_SIZE = 10
-FACES_DIR = "./faces"
-EPOCHS = 15
-MODEL_NAME = "face_recognition.h5"
-CLASS_NAMES_FILE = "ClassNames.txt"
 
 
 ## Preparing datasets
 # Load dataset from faces directory
 learnData = tf.keras.utils.image_dataset_from_directory(
-    directory=FACES_DIR, shuffle=True, batch_size=BATCH_SIZE, image_size=IMAGE_SIZE
+    directory=common.FACES_DIR,
+    shuffle=True,
+    batch_size=common.BATCH_SIZE,
+    image_size=common.IMAGE_SIZE,
 )
 
 # Get class names from dataset
@@ -28,7 +22,7 @@ classNames = learnData.class_names
 print(classNames)
 
 # Save class names to file to use it when predicting faces
-np.savetxt(CLASS_NAMES_FILE, classNames, fmt="%s")
+np.savetxt(common.CLASS_NAMES_FILE, classNames, fmt="%s")
 
 # Get number of classes
 nClasses = len(classNames)
@@ -54,7 +48,9 @@ print(
 # Create a preprocessing pipeline
 preprocess = tf.keras.Sequential(
     [
-        tf.keras.layers.Resizing(height=HEIGHT, width=WIDTH, crop_to_aspect_ratio=True),
+        tf.keras.layers.Resizing(
+            height=common.HEIGHT, width=common.WIDTH, crop_to_aspect_ratio=True
+        ),
         tf.keras.layers.Lambda(tf.keras.applications.xception.preprocess_input),
     ]
 )
@@ -93,15 +89,15 @@ baseModel = tf.keras.applications.xception.Xception(
 # Create augmentation layer
 dataAugmentation = tf.keras.Sequential(
     [
-        tf.keras.layers.RandomFlip("horizontal", seed=SEED),
-        tf.keras.layers.RandomRotation(factor=0.02, seed=SEED),
-        tf.keras.layers.RandomContrast(factor=0.2, seed=SEED),
+        tf.keras.layers.RandomFlip("horizontal", seed=common.SEED),
+        tf.keras.layers.RandomRotation(factor=0.02, seed=common.SEED),
+        tf.keras.layers.RandomContrast(factor=0.2, seed=common.SEED),
     ],
     name="dataAugmentation",
 )
 
 # Create input layer
-inputs = tf.keras.layers.Input(shape=IMAGE_SHAPE, name="NewInput")
+inputs = tf.keras.layers.Input(shape=common.IMAGE_SHAPE, name="NewInput")
 
 # Connect layers
 x = dataAugmentation(inputs)
@@ -137,7 +133,7 @@ import time
 start = time.time()
 
 # Start training
-history = model.fit(trainDataset, validation_data=validDataset, epochs=EPOCHS)
+history = model.fit(trainDataset, validation_data=validDataset, epochs=common.EPOCHS)
 
 stop = time.time()
 
@@ -159,12 +155,12 @@ loss = tf.keras.losses.SparseCategoricalCrossentropy()
 model.compile(loss=loss, optimizer=optimizer, metrics=["accuracy"])
 
 start = time.time()
-history = model.fit(trainDataset, validation_data=validDataset, epochs=EPOCHS)
+history = model.fit(trainDataset, validation_data=validDataset, epochs=common.EPOCHS)
 stop = time.time()
 print(f"Training took: {(stop-start)/60} minutes")
 
 
 # Save the model
 workingDir = os.path.dirname(__file__)
-modelPath = os.path.join(workingDir, MODEL_NAME)
-model.save(MODEL_NAME)
+modelPath = os.path.join(workingDir, common.MODEL_NAME)
+model.save(modelPath)
