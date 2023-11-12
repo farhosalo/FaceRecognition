@@ -26,11 +26,8 @@ model = tf.keras.models.load_model(modelPath)
 model.summary()
 
 
-img = (
-    Image.open(filePath)
-    .convert("RGB")
-    .resize((common.IMAGE_SIZE), Image.Resampling.LANCZOS)
-)
+img = Image.open(filePath)
 img = np.array(img)
-yProba = np.argmax(model.predict(img[None, :, :]))
+preProcessedImage = common.preprocess(img)
+yProba = np.argmax(model.predict(preProcessedImage[None, :, :]))
 print(classNames[yProba])

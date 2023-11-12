@@ -45,23 +45,13 @@ print(
     )
 )
 
-# Create a preprocessing pipeline
-preprocess = tf.keras.Sequential(
-    [
-        tf.keras.layers.Resizing(
-            height=common.HEIGHT, width=common.WIDTH, crop_to_aspect_ratio=True
-        ),
-        tf.keras.layers.Lambda(tf.keras.applications.xception.preprocess_input),
-    ]
-)
-
 # Apply preprocessing pipeline to datasets
-trainDataset = trainDatasetRaw.map(lambda X, Y: (preprocess(X), Y))
+trainDataset = trainDatasetRaw.map(lambda X, Y: (common.preprocess(X), Y))
 trainDataset = trainDataset.prefetch(1)
 
-testDataset = testDatasetRaw.map(lambda X, Y: (preprocess(X), Y))
+testDataset = testDatasetRaw.map(lambda X, Y: (common.preprocess(X), Y))
 
-validDataset = validDatasetRaw.map(lambda X, Y: (preprocess(X), Y))
+validDataset = validDatasetRaw.map(lambda X, Y: (common.preprocess(X), Y))
 
 
 # Show some faces after preprocessing
@@ -138,7 +128,7 @@ history = model.fit(trainDataset, validation_data=validDataset, epochs=common.EP
 stop = time.time()
 
 # Calculate training duration print it out
-print(f"Training took: {(stop-start)/60} minutes")
+firstLearningPhaseDuration = (stop - start) / 60
 
 # After we achieve good weights, we can make the base model layers trainable again
 # and continue training with lower learning rates
@@ -157,7 +147,10 @@ model.compile(loss=loss, optimizer=optimizer, metrics=["accuracy"])
 start = time.time()
 history = model.fit(trainDataset, validation_data=validDataset, epochs=common.EPOCHS)
 stop = time.time()
-print(f"Training took: {(stop-start)/60} minutes")
+secondLearningPhaseDuration = (stop - start) / 60
+
+print(f"First learning phase took: {firstLearningPhaseDuration} minutes")
+print(f"First learning phase took: {secondLearningPhaseDuration} minutes")
 
 
 # Save the model
