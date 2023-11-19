@@ -34,24 +34,23 @@ validSize = int(nElement * 0.1)
 trainSize = nElement - testSize - validSize
 
 # Split dataset into training, testing and validation sets
-trainDatasetRaw = learnData.take(trainSize)
-testDatasetRaw = learnData.skip(trainSize)
-validDatasetRaw = testDatasetRaw.skip(testSize)
-testDatasetRaw = testDatasetRaw.take(testSize)
+trainDataset = learnData.take(trainSize)
+testDataset = learnData.skip(trainSize)
+validDataset = testDataset.skip(testSize)
+testDatasetR = testDataset.take(testSize)
+
+AUTOTUNE = tf.data.AUTOTUNE
+
+trainDataset = trainDataset.prefetch(buffer_size=AUTOTUNE)
+testDataset = testDataset.prefetch(buffer_size=AUTOTUNE)
+validDataset = validDataset.prefetch(buffer_size=AUTOTUNE)
+
 
 print(
     "nElements={0}, Training={1}, testSize={2} and validSize={3}".format(
-        nElement, len(trainDatasetRaw), len(testDatasetRaw), len(validDatasetRaw)
+        nElement, len(trainDataset), len(testDataset), len(validDataset)
     )
 )
-
-# Apply preprocessing pipeline to datasets
-trainDataset = trainDatasetRaw.map(lambda X, Y: (common.preprocess(X), Y))
-trainDataset = trainDataset.prefetch(1)
-
-testDataset = testDatasetRaw.map(lambda X, Y: (common.preprocess(X), Y))
-
-validDataset = validDatasetRaw.map(lambda X, Y: (common.preprocess(X), Y))
 
 
 # Show some faces after preprocessing
@@ -74,7 +73,12 @@ baseModel = tf.keras.applications.xception.Xception(
     weights="imagenet",
     include_top=False,
 )
+baseModel.trainable = False
 
+# Create augmentation layers
+globalAvgPoolingLayer = tf.keras.layers.GlobalAveragePooling2D(
+    name="globalAvgPooling2D"
+)
 
 # Create augmentation layer
 dataAugmentation = tf.keras.Sequential(
@@ -87,15 +91,21 @@ dataAugmentation = tf.keras.Sequential(
 )
 
 # Create input layer
-inputs = tf.keras.layers.Input(shape=common.IMAGE_SHAPE, name="NewInput")
+inputs = tf.keras.layers.Input(shape=common.IMAGE_SHAPE, name="input")
+
+# Create output layer
+outputLayer = tf.keras.layers.Dense(nClasses, activation="softmax", name="output")
+
+# Create preprocessing layer
+preprocessLayer = tf.keras.applications.xception.preprocess_input
 
 # Connect layers
 x = dataAugmentation(inputs)
+x = preprocessLayer(x)
 x = baseModel(x, training=False)
-x = tf.keras.layers.GlobalAveragePooling2D()(x)
+x = globalAvgPoolingLayer(x)
+outputs = outputLayer(x)
 
-# Add output layer
-outputs = tf.keras.layers.Dense(nClasses, activation="softmax")(x)
 
 # Create a new model
 model = tf.keras.Model(inputs=inputs, outputs=outputs)
