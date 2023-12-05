@@ -39,8 +39,8 @@ testDataset = learnData.skip(trainSize)
 validDataset = testDataset.skip(testSize)
 testDatasetR = testDataset.take(testSize)
 
+# Do buffered prefetching to avoid i/o blocking
 AUTOTUNE = tf.data.AUTOTUNE
-
 trainDataset = trainDataset.prefetch(buffer_size=AUTOTUNE)
 testDataset = testDataset.prefetch(buffer_size=AUTOTUNE)
 validDataset = validDataset.prefetch(buffer_size=AUTOTUNE)
@@ -102,7 +102,9 @@ preprocessLayer = tf.keras.applications.xception.preprocess_input
 # Connect layers
 x = dataAugmentation(inputs)
 x = preprocessLayer(x)
-x = baseModel(x, training=False)
+x = baseModel(
+    x, training=False
+)  # To make sure that the base model is running in inference mode
 x = globalAvgPoolingLayer(x)
 outputs = outputLayer(x)
 
@@ -134,7 +136,7 @@ start = time.time()
 
 # Start training
 phase1History = model.fit(
-    trainDataset, validation_data=validDataset, epochs=common.EPOCHS
+    trainDataset, validation_data=validDataset, epochs=common.EPOCHS * 2
 )
 stop = time.time()
 
@@ -147,9 +149,13 @@ model.evaluate(testDataset)
 
 # After we achieve good weights, we can make the base model layers trainable again
 # and continue training with lower learning rates
+# We will make only the above 2/3 layers trainable
 
-for layer in baseModel.layers:
+noneTrainableLayers = len(baseModel.layers) // 3
+
+for layer in baseModel.layers[noneTrainableLayers:]:
     layer.trainable = True
+
 learningRate = 0.01
 momentum = 0.9
 optimizer = tf.keras.optimizers.legacy.SGD(
@@ -178,7 +184,7 @@ workingDir = os.path.dirname(__file__)
 modelPath = os.path.join(workingDir, common.MODEL_NAME)
 model.save(modelPath)
 
-# Plotting the training hisory
+# Plotting the training history
 plt.subplot(2, 2, 1)
 plt.plot(phase1History.history["loss"])
 plt.plot(phase1History.history["val_loss"])
