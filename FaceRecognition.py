@@ -133,12 +133,17 @@ import time
 start = time.time()
 
 # Start training
-history = model.fit(trainDataset, validation_data=validDataset, epochs=common.EPOCHS)
-
+phase1History = model.fit(
+    trainDataset, validation_data=validDataset, epochs=common.EPOCHS
+)
 stop = time.time()
 
 # Calculate training duration print it out
 firstLearningPhaseDuration = (stop - start) / 60
+
+
+# Evaluate the model on test data
+model.evaluate(testDataset)
 
 # After we achieve good weights, we can make the base model layers trainable again
 # and continue training with lower learning rates
@@ -155,9 +160,14 @@ loss = tf.keras.losses.SparseCategoricalCrossentropy()
 model.compile(loss=loss, optimizer=optimizer, metrics=["accuracy"])
 
 start = time.time()
-history = model.fit(trainDataset, validation_data=validDataset, epochs=common.EPOCHS)
+phase2History = model.fit(
+    trainDataset, validation_data=validDataset, epochs=common.EPOCHS
+)
 stop = time.time()
 secondLearningPhaseDuration = (stop - start) / 60
+
+# Evaluate the model on test data
+model.evaluate(testDataset)
 
 print(f"First learning phase took: {firstLearningPhaseDuration} minutes")
 print(f"First learning phase took: {secondLearningPhaseDuration} minutes")
@@ -167,3 +177,36 @@ print(f"First learning phase took: {secondLearningPhaseDuration} minutes")
 workingDir = os.path.dirname(__file__)
 modelPath = os.path.join(workingDir, common.MODEL_NAME)
 model.save(modelPath)
+
+# Plotting the training hisory
+plt.subplot(2, 2, 1)
+plt.plot(phase1History.history["loss"])
+plt.plot(phase1History.history["val_loss"])
+plt.title("phase 1 model loss")
+plt.ylabel("loss")
+plt.legend(["train", "val"])
+
+plt.subplot(2, 2, 2)
+plt.plot(phase1History.history["accuracy"])
+plt.plot(phase1History.history["val_accuracy"])
+plt.title("phase 1 model performance")
+plt.ylabel("rmse")
+plt.legend(["train", "val"])
+
+plt.subplot(2, 2, 3)
+plt.plot(phase2History.history["loss"])
+plt.plot(phase2History.history["val_loss"])
+plt.title("phase 2 model loss")
+plt.ylabel("loss")
+plt.xlabel("epochs")
+plt.legend(["train", "val"])
+
+plt.subplot(2, 2, 4)
+plt.plot(phase2History.history["accuracy"])
+plt.plot(phase2History.history["val_accuracy"])
+plt.title("phase 2 model performance")
+plt.ylabel("rmse")
+plt.xlabel("epochs")
+plt.legend(["train", "val"])
+
+plt.show()
