@@ -12,3 +12,12 @@ CLASS_NAMES_FILE = "ClassNames.txt"
 
 CLASS_NAMES_FILE = "ClassNames.txt"
 MODEL_NAME = "face_recognition.h5"
+
+
+def split(dataset, trainRatio, validRatio):
+    nElement = len(dataset)
+    trainDataset = dataset.take(int(nElement * trainRatio))
+    validTestDataset = dataset.skip(int(nElement * trainRatio))
+    validDataset = validTestDataset.take(int(validRatio * nElement))
+    testDataset = validTestDataset.skip(int(validRatio * nElement))
+    return trainDataset, validDataset, testDataset

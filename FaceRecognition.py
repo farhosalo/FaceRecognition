@@ -27,17 +27,7 @@ np.savetxt(common.CLASS_NAMES_FILE, classNames, fmt="%s")
 # Get number of classes
 nClasses = len(classNames)
 
-# Calculate the size of training, testing and validation sets
-nElement = len(learnData)
-testSize = int(nElement * 0.2)
-validSize = int(nElement * 0.1)
-trainSize = nElement - testSize - validSize
-
-# Split dataset into training, testing and validation sets
-trainDataset = learnData.take(trainSize)
-testDataset = learnData.skip(trainSize)
-validDataset = testDataset.skip(testSize)
-testDatasetR = testDataset.take(testSize)
+trainDataset, validDataset, testDataset = common.split(learnData, 0.8, 0.1)
 
 # Do buffered prefetching to avoid i/o blocking
 AUTOTUNE = tf.data.AUTOTUNE
@@ -47,8 +37,8 @@ validDataset = validDataset.prefetch(buffer_size=AUTOTUNE)
 
 
 print(
-    "nElements={0}, Training={1}, testSize={2} and validSize={3}".format(
-        nElement, len(trainDataset), len(testDataset), len(validDataset)
+    "Training={0}, testSize={1} and validSize={2}".format(
+        len(trainDataset), len(testDataset), len(validDataset)
     )
 )
 
